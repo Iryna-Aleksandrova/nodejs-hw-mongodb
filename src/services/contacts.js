@@ -64,10 +64,18 @@ export const addContacts = async (payload) => {
   return await ContactsCollection.create(payload);
 };
 
+// export const updateContacts = async (_id, payload, userId) => {
+//   return ContactsCollection.findOneAndUpdate({ _id, userId }, payload, {
+//     new: true,
+//   });
+// };
+
 export const updateContacts = async (_id, payload, userId) => {
-  return ContactsCollection.findOneAndUpdate({ _id, userId }, payload, {
-    new: true,
-  });
+  return ContactsCollection.findOneAndUpdate(
+    { _id, userId }, // 🔧 було: owner: userId
+    payload,
+    { new: true, runValidators: true },
+  );
 };
 
 export const deleteContactsById = async (_id, userId) => {

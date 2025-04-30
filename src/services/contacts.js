@@ -64,18 +64,27 @@ export const addContacts = async (payload) => {
   return await ContactsCollection.create(payload);
 };
 
-// export const updateContacts = async (_id, payload, userId) => {
-//   return ContactsCollection.findOneAndUpdate({ _id, userId }, payload, {
-//     new: true,
-//   });
-// };
-
-export const updateContacts = async (_id, payload, userId) => {
-  return ContactsCollection.findOneAndUpdate(
-    { _id, userId }, // 🔧 було: owner: userId
+export const updateContacts = async (
+  { contactId, userId },
+  payload,
+  options = {},
+) => {
+  const { upsert = false } = options;
+  const rawResult = await ContactsCollection.findOneAndUpdate(
+    { _id: contactId, userId },
     payload,
-    { new: true, runValidators: true },
+    {
+      upsert,
+      includeResultMetadata: true,
+    },
   );
+
+  if (!rawResult || !rawResult.value) return null;
+
+  return {
+    data: rawResult.value,
+    isNew: Boolean(rawResult.lastErrorObject.upserted),
+  };
 };
 
 export const deleteContactsById = async (_id, userId) => {

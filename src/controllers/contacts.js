@@ -10,6 +10,10 @@ import { parsePaginationParams } from '../utils/parsePaginationParams.js';
 import { parseSortParams } from '../utils/parseSortParams.js';
 import { parseFilterParams } from '../utils/filters/parseFilterParams.js';
 import { contactSortFields } from '../db/models/Contact.js';
+import { saveFile } from '../utils/filters/saveFile.js';
+import { saveFileToCloudinary } from '../utils/filters/saveFileToCloudinary.js';
+// import { getEnvVar } from '../utils/getEnvVar.js';
+// import { saveFileToLocal } from '../utils/filters/saveFileToLocal.js';
 
 export const getContactsController = async (req, res) => {
   try {
@@ -17,9 +21,6 @@ export const getContactsController = async (req, res) => {
     const sortParams = parseSortParams(req.query, contactSortFields);
     const filter = parseFilterParams(req.query);
     filter.userId = req.user._id;
-    // console.log('Pagination Params:', paginationParams);
-    // console.log('Sort Params:', sortParams);
-    // console.log('Filter Params:', filter);
 
     const data = await getContacts({
       ...paginationParams,
@@ -61,7 +62,19 @@ export const getContactsByIdController = async (req, res) => {
 
 export const addContactsController = async (req, res) => {
   const userId = req.user._id;
-  const data = await addContacts({ ...req.body, userId });
+  const photo = req.file;
+  let photoUrl;
+
+  if (photo) {
+    photoUrl = await saveFileToCloudinary(photo);
+  }
+  // if (getEnvVar('SAVE_FILE_STRATEGY') === 'true') {
+  //   photoUrl = await saveFileToCloudinary(photo);
+  // } else {
+  //   photoUrl = await saveFileToLocal(photo);
+  // }
+
+  const data = await addContacts({ ...req.body, userId, photo: photoUrl });
 
   res.status(201).json({
     status: 201,
@@ -73,15 +86,31 @@ export const addContactsController = async (req, res) => {
 export const patchContactsController = async (req, res) => {
   const { contactId } = req.params;
   const userId = req.user._id;
-  const data = await updateContacts(contactId, req.body, userId);
 
-  if (!data) {
-    throw createHttpError(404, `Contact not found`);
+  const existingContact = await getContactsById({ contactId, userId });
+
+  if (!existingContact) {
+    throw createHttpError(404, `Contact with id=${contactId} not found`);
   }
+
+  let photo = existingContact.photo;
+  if (req.file) {
+    photo = await saveFile(req.file);
+  }
+
+  const updatedContact = await updateContacts(
+    { contactId, userId },
+    { ...req.body, photo },
+  );
+
+  if (!updatedContact) {
+    throw createHttpError(404, 'Failed to update contact');
+  }
+
   res.status(200).json({
     status: 200,
-    message: 'Sucessfully patched a contact!',
-    data,
+    message: 'Successfully patched a contact!',
+    data: updatedContact.data,
   });
 };
 

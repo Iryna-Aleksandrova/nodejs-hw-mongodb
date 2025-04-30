@@ -4,7 +4,10 @@ import {
   loginUser,
   refreshUser,
   logoutUser,
+  // verifyUser,
 } from '../services/auth.js';
+import { requestResetToken } from '../services/auth.js';
+import { resetPassword } from '../services/auth.js';
 
 const setupSession = (res, session) => {
   res.cookie('refreshToken', session.refreshToken, {
@@ -17,6 +20,19 @@ const setupSession = (res, session) => {
     expires: session.refreshTokenValidUnitl,
   });
 };
+// const setupSession = (res, session) => {
+//   const expiresAt = new Date(session.refreshTokenValidUnitl);
+
+//   res.cookie('refreshToken', session.refreshToken, {
+//     httpOnly: true,
+//     expires: expiresAt,
+//   });
+
+//   res.cookie('sessionId', session._id.toString(), {
+//     httpOnly: true,
+//     expires: expiresAt,
+//   });
+// };
 
 export const registerController = async (req, res) => {
   const user = await registerUser(req.body);
@@ -25,6 +41,40 @@ export const registerController = async (req, res) => {
     status: 201,
     message: 'Successfully registered a user!',
     data: user,
+  });
+};
+
+// export const verifyController = async (req, res) => {
+//   await verifyUser(req.query.token);
+
+//   res.json({
+//     message: 'Email verified!',
+//   });
+// };
+
+export const requestResetEmailController = async (req, res) => {
+  console.log('Request received:', req.body);
+
+  try {
+    await requestResetToken(req.body.email);
+    console.log('Email reset token sent successfully');
+    res.json({
+      message: 'Reset password email has been successfully sent.',
+      status: 200,
+      data: {},
+    });
+  } catch (error) {
+    console.error('Error sending reset email:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const resetPasswordController = async (req, res) => {
+  await resetPassword(req.body);
+  res.json({
+    message: 'Password has been successfully reset.',
+    status: 200,
+    data: {},
   });
 };
 

@@ -28,3 +28,5 @@ export const CLOUDINARY = {
 };
 
 export const SAVE_FILE_STRATEGY = 'cloudinary';
+
+export const SWAGGER_PATH = path.join(process.cwd(), 'docs', 'swagger.json');

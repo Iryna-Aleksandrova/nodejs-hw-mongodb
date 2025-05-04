@@ -44,6 +44,8 @@ responses:
               type: object
               example:
                 accessToken: vsV50Qm32eFHcHM2/ymVOaRWwxgX+yqHFcBc6qHF
+  '400':
+    $ref: '../../../components/responses/400.yaml'
   '401':
     $ref: '../../../components/responses/401.yaml'
   '404':

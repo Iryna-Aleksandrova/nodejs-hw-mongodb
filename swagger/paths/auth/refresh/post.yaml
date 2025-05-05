@@ -19,7 +19,7 @@ responses:
           properties:
             status:
               type: integer
-              example: 201
+              example: 200
             message:
               type: string
               example: Successfully refreshed a session!
@@ -27,7 +27,5 @@ responses:
               type: object
               example:
                 accessToken: kyyBFGvoNG4G2LhnFCKAGSmMnHTPtB3pMUkGYJR0
-  '400':
-    $ref: '../../../components/responses/400.yaml'
   '401':
     $ref: '../../../components/responses/401.yaml'
